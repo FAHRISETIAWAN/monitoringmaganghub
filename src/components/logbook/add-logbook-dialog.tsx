@@ -222,7 +222,7 @@ export function AddLogbookDialog() {
               className="flex flex-1 flex-col overflow-hidden"
             >
               <div className="flex w-full flex-1 flex-col gap-4 overflow-y-auto px-4">
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                   <div className="flex flex-col gap-2">
                     <Label htmlFor="tanggal">Tanggal</Label>
                     <DatePicker
