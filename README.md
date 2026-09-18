@@ -1,36 +1,34 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Magang Hub ATR/BPN
 
-## Getting Started
+Aplikasi monitoring peserta magang di lingkungan Kementerian ATR/BPN — login berbasis email, dashboard ringkasan, logbook kegiatan harian, dan verifikasi mentor.
 
-First, run the development server:
+## Menjalankan proyek
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Buka [http://localhost:3000](http://localhost:3000). Login cukup dengan email (mode demo, tanpa password):
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Peserta Magang** — pilih nama dari daftar peserta aktif, lalu tambahkan logbook harian.
+- **Mentor** — isi nama & email bebas, lalu tinjau/verifikasi logbook seluruh peserta.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Fitur
 
-## Learn More
+- **Login** berbasis email dengan dua peran: Peserta Magang & Mentor.
+- **Dashboard** — statistik peserta aktif, logbook hari ini, menunggu verifikasi, terverifikasi bulan ini, serta daftar aktivitas terbaru.
+- **Logbook** — peserta mencatat hari, jam mulai/selesai, aktivitas, dan output; mentor meninjau lalu memverifikasi atau meminta revisi.
+- **Peserta Magang** (khusus mentor) — daftar peserta beserta divisi, instansi asal, dan periode magang.
 
-To learn more about Next.js, take a look at the following resources:
+## Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [Next.js](https://nextjs.org) (App Router) + TypeScript
+- [Tailwind CSS v4](https://tailwindcss.com)
+- [shadcn/ui](https://ui.shadcn.com) (Radix UI) untuk komponen (Dialog, Table, Tabs, Select, dll.)
+- [Iconify](https://iconify.design) (`@iconify/react`) untuk ikon
+- [gooey-toast](https://github.com/janusfil/gooey-toast) untuk notifikasi toast
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Data
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Proyek ini masih menggunakan data dummy (`src/lib/mock-data.ts`) yang disinkronkan ke `localStorage` melalui `useSyncExternalStore` (`src/lib/use-local-storage.ts`), sehingga perubahan logbook & sesi login tetap tersimpan antar reload di browser yang sama. Belum terhubung ke database/backend sungguhan.
