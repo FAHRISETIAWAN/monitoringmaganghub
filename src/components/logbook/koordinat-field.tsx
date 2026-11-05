@@ -167,7 +167,7 @@ export function KoordinatField({
           <iframe
             title="Pratinjau titik koordinat"
             src={osmEmbedUrl(result.latitude!, result.longitude!)}
-            className="h-52 w-full rounded-xl border border-input"
+            className="h-80 w-full rounded-xl border border-input sm:h-96"
             loading="lazy"
           />
           <a
