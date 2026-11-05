@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useMemo } from "react";
 import { useLocalStorageState } from "@/lib/use-local-storage";
 import { MOCK_LOGBOOK } from "@/lib/mock-data";
-import type { LogbookEntry, LogbookStatus } from "@/lib/types";
+import type { LogbookEntry, LogbookStatus, Tipologi } from "@/lib/types";
 
 const STORAGE_KEY = "magang-hub-logbook-entries";
 
@@ -15,6 +15,12 @@ type NewLogbookInput = {
   jamMulai: string;
   jamSelesai: string;
   aktivitas: string;
+  tipologi?: Tipologi;
+  nik?: string;
+  nomorTelepon?: string;
+  nomorHak?: string;
+  latitude?: number;
+  longitude?: number;
   output: string;
   lampiranUrl?: string;
   status?: Extract<LogbookStatus, "draft" | "pending">;

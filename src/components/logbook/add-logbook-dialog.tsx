@@ -19,14 +19,34 @@ import {
 } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { DatePicker } from "@/components/ui/date-picker";
 import { TimeInput } from "@/components/ui/time-input";
 import { StatusBadge } from "@/components/logbook/status-badge";
+import { KoordinatField } from "@/components/logbook/koordinat-field";
+import { cekKoordinat } from "@/lib/koordinat";
 import { cn } from "@/lib/utils";
-import type { LogbookEntry } from "@/lib/types";
+import {
+  TIPOLOGI_OPTIONS,
+  tipologiNeedsIdentitas,
+  type LogbookEntry,
+  type Tipologi,
+} from "@/lib/types";
 
 const TIME_FORMAT = /^([01]\d|2[0-3]):[0-5]\d$/;
+const NIK_FORMAT = /^\d{16}$/;
+const PHONE_FORMAT = /^\d{8,15}$/;
+
+function onlyDigits(value: string) {
+  return value.replace(/\D/g, "");
+}
 
 function ReceiptRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -49,6 +69,12 @@ export function AddLogbookDialog() {
   const [jamMulai, setJamMulai] = useState("08:00");
   const [jamSelesai, setJamSelesai] = useState("16:00");
   const [aktivitas, setAktivitas] = useState("");
+  const [tipologi, setTipologi] = useState<Tipologi | "">("");
+  const [nik, setNik] = useState("");
+  const [nomorTelepon, setNomorTelepon] = useState("");
+  const [nomorHak, setNomorHak] = useState("");
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
   const [output, setOutput] = useState("");
   const [lampiranUrl, setLampiranUrl] = useState("");
   const [saving, setSaving] = useState(false);
@@ -56,11 +82,22 @@ export function AddLogbookDialog() {
   if (!user || !peserta) return null;
 
   const trimmedLampiranUrl = lampiranUrl.trim();
+  const needsIdentitas = tipologiNeedsIdentitas(tipologi);
+  const isTipologiValid =
+    tipologi !== "" &&
+    (needsIdentitas
+      ? NIK_FORMAT.test(nik) && PHONE_FORMAT.test(nomorTelepon)
+      : nomorHak.trim().length > 0);
+  const koordinat = cekKoordinat(latitude, longitude);
+  const isKoordinatValid =
+    koordinat.status === "valid" || koordinat.status === "luar-indonesia";
   const isFormComplete =
     TIME_FORMAT.test(jamMulai) &&
     TIME_FORMAT.test(jamSelesai) &&
     jamSelesai > jamMulai &&
     !isHtmlEmpty(aktivitas) &&
+    isTipologiValid &&
+    isKoordinatValid &&
     !isHtmlEmpty(output) &&
     (!trimmedLampiranUrl || /^https?:\/\//i.test(trimmedLampiranUrl));
 
@@ -69,6 +106,12 @@ export function AddLogbookDialog() {
     setJamMulai("08:00");
     setJamSelesai("16:00");
     setAktivitas("");
+    setTipologi("");
+    setNik("");
+    setNomorTelepon("");
+    setNomorHak("");
+    setLatitude("");
+    setLongitude("");
     setOutput("");
     setLampiranUrl("");
   }
@@ -105,6 +148,41 @@ export function AddLogbookDialog() {
       });
       return;
     }
+    if (tipologi === "") {
+      toast.error({
+        title: "Tipologi belum dipilih",
+        description: "Pilih tipologi terlebih dahulu.",
+      });
+      return;
+    }
+    if (needsIdentitas && !NIK_FORMAT.test(nik)) {
+      toast.error({
+        title: "NIK tidak valid",
+        description: "NIK harus terdiri dari 16 digit angka.",
+      });
+      return;
+    }
+    if (needsIdentitas && !PHONE_FORMAT.test(nomorTelepon)) {
+      toast.error({
+        title: "Nomor telepon tidak valid",
+        description: "Gunakan 8-15 digit angka.",
+      });
+      return;
+    }
+    if (!needsIdentitas && !nomorHak.trim()) {
+      toast.error({
+        title: "Nomor hak belum diisi",
+        description: "Nomor hak wajib diisi untuk tipologi KW456.",
+      });
+      return;
+    }
+    if (!isKoordinatValid) {
+      toast.error({
+        title: "Koordinat tidak valid",
+        description: "Isi latitude dan longitude dengan angka yang benar.",
+      });
+      return;
+    }
     const trimmedLampiran = lampiranUrl.trim();
     if (trimmedLampiran && !/^https?:\/\//i.test(trimmedLampiran)) {
       toast.error({
@@ -123,6 +201,12 @@ export function AddLogbookDialog() {
       jamMulai,
       jamSelesai,
       aktivitas,
+      tipologi,
+      nik: needsIdentitas ? nik : undefined,
+      nomorTelepon: needsIdentitas ? nomorTelepon : undefined,
+      nomorHak: needsIdentitas ? undefined : nomorHak.trim(),
+      latitude: koordinat.latitude,
+      longitude: koordinat.longitude,
       output,
       lampiranUrl: trimmedLampiran || undefined,
       status,
@@ -181,6 +265,22 @@ export function AddLogbookDialog() {
                 value={`${submitted.jamMulai}–${submitted.jamSelesai}`}
               />
               <ReceiptRow label="Divisi" value={submitted.divisi} />
+              {submitted.tipologi && (
+                <ReceiptRow label="Tipologi" value={submitted.tipologi} />
+              )}
+              {submitted.nik && <ReceiptRow label="NIK" value={submitted.nik} />}
+              {submitted.nomorTelepon && (
+                <ReceiptRow label="No. Telepon" value={submitted.nomorTelepon} />
+              )}
+              {submitted.nomorHak && (
+                <ReceiptRow label="Nomor Hak" value={submitted.nomorHak} />
+              )}
+              {submitted.latitude !== undefined && submitted.longitude !== undefined && (
+                <ReceiptRow
+                  label="Koordinat"
+                  value={`${submitted.latitude}, ${submitted.longitude}`}
+                />
+              )}
               {submitted.lampiranUrl && (
                 <ReceiptRow
                   label="Lampiran"
@@ -258,6 +358,76 @@ export function AddLogbookDialog() {
                     placeholder="Jelaskan kegiatan yang dilakukan hari ini"
                   />
                 </div>
+
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="tipologi">Tipologi</Label>
+                  <Select
+                    value={tipologi}
+                    onValueChange={(value) => setTipologi(value as Tipologi)}
+                  >
+                    <SelectTrigger id="tipologi" className="h-11! w-full rounded-lg px-3">
+                      <SelectValue placeholder="Pilih tipologi" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TIPOLOGI_OPTIONS.map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {tipologi !== "" && needsIdentitas && (
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div className="flex flex-col gap-2">
+                      <Label htmlFor="nik">NIK</Label>
+                      <Input
+                        id="nik"
+                        inputMode="numeric"
+                        maxLength={16}
+                        placeholder="16 digit NIK"
+                        value={nik}
+                        onChange={(e) => setNik(onlyDigits(e.target.value))}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Label htmlFor="nomorTelepon">Nomor telepon</Label>
+                      <Input
+                        id="nomorTelepon"
+                        type="tel"
+                        inputMode="numeric"
+                        maxLength={15}
+                        placeholder="08xxxxxxxxxx"
+                        value={nomorTelepon}
+                        onChange={(e) => setNomorTelepon(onlyDigits(e.target.value))}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {tipologi !== "" && !needsIdentitas && (
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="nomorHak">Nomor hak</Label>
+                    <Input
+                      id="nomorHak"
+                      placeholder="Masukkan nomor hak"
+                      value={nomorHak}
+                      onChange={(e) => setNomorHak(e.target.value)}
+                    />
+                  </div>
+                )}
+
+                {tipologi !== "" && (
+                  <KoordinatField
+                    latitude={latitude}
+                    longitude={longitude}
+                    onChange={(lat, lng) => {
+                      setLatitude(lat);
+                      setLongitude(lng);
+                    }}
+                  />
+                )}
 
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="output">Output</Label>

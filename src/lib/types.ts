@@ -46,6 +46,18 @@ export type Admin = {
 
 export type LogbookStatus = "draft" | "pending" | "verified" | "revisi";
 
+export const TIPOLOGI_OPTIONS = [
+  "Masyarakat Berpenghasilan Rendah",
+  "Wakaf",
+  "KW456",
+] as const;
+
+export type Tipologi = (typeof TIPOLOGI_OPTIONS)[number];
+
+export function tipologiNeedsIdentitas(tipologi: Tipologi | ""): boolean {
+  return tipologi === "Masyarakat Berpenghasilan Rendah" || tipologi === "Wakaf";
+}
+
 export type LogbookEntry = {
   id: string;
   pesertaId: string;
@@ -55,6 +67,12 @@ export type LogbookEntry = {
   jamMulai: string;
   jamSelesai: string;
   aktivitas: string;
+  tipologi?: Tipologi;
+  nik?: string;
+  nomorTelepon?: string;
+  nomorHak?: string;
+  latitude?: number;
+  longitude?: number;
   output: string;
   lampiranUrl?: string;
   status: LogbookStatus;

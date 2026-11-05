@@ -7,6 +7,7 @@ import { useAuth } from "@/context/auth-context";
 import { useLogbook } from "@/context/logbook-context";
 import { formatTanggalID } from "@/lib/date";
 import { isHtmlEmpty } from "@/lib/html";
+import { googleMapsUrl } from "@/lib/koordinat";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -156,6 +157,49 @@ export function VerifyLogbookDialog({ entry }: { entry: LogbookEntry }) {
               value={`${entry.jamMulai}–${entry.jamSelesai}`}
             />
           </div>
+
+          {entry.tipologi && (
+            <div className="flex flex-col gap-2 rounded-2xl bg-surface-soft p-4 text-sm">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-muted-foreground">Tipologi</span>
+                <span className="text-right font-semibold text-ink">{entry.tipologi}</span>
+              </div>
+              {entry.nik && (
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-muted-foreground">NIK</span>
+                  <span className="font-numeric font-semibold text-ink">{entry.nik}</span>
+                </div>
+              )}
+              {entry.nomorTelepon && (
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-muted-foreground">No. Telepon</span>
+                  <span className="font-numeric font-semibold text-ink">
+                    {entry.nomorTelepon}
+                  </span>
+                </div>
+              )}
+              {entry.nomorHak && (
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-muted-foreground">Nomor Hak</span>
+                  <span className="text-right font-semibold text-ink">{entry.nomorHak}</span>
+                </div>
+              )}
+              {entry.latitude !== undefined && entry.longitude !== undefined && (
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-muted-foreground">Koordinat</span>
+                  <a
+                    href={googleMapsUrl(entry.latitude, entry.longitude)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 font-numeric font-semibold text-primary hover:underline"
+                  >
+                    {entry.latitude}, {entry.longitude}
+                    <Icon icon="lucide:external-link" className="size-3.5" />
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
 
           {entry.lampiranUrl && (
             <div className="flex items-center justify-between gap-3 rounded-2xl bg-surface-soft p-3">
